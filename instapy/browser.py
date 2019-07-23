@@ -58,10 +58,6 @@ def set_selenium_local_session(proxy_address,
     if use_firefox:
         firefox_options = Firefox_Options()
 
-        # user_agent = ua.random if random_user_agent else ua.firefox
-        firefox_options.add_argument('user-agent={user_agent}'
-                                    .format(user_agent = user_agent))
-
         if headless_browser:
             firefox_options.add_argument('-headless')
 
