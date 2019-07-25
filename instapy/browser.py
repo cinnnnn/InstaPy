@@ -11,6 +11,8 @@ from fake_useragent import UserAgent, FakeUserAgentError
 
 # general libs
 import re
+import os
+import zipfile
 from time import sleep
 
 # local project
@@ -22,6 +24,20 @@ from .util import check_authorization
 from .util import web_address_navigator
 from .settings import Settings
 from .file_manager import get_chromedriver_location
+
+
+def create_firefox_extension():
+    ext_path = os.path.abspath(os.path.dirname(__file__) + '/firefox_extension')
+    ext_filename = ext_path + '/extension.xpi'
+    zipf = zipfile.ZipFile(ext_filename, 'w', zipfile.ZIP_DEFLATED)
+
+    files = [ 'manifest.json', 'content.js', 'arrive.js' ]
+    for file in files:
+        zipf.write(ext_path + '/' + file, file)
+
+    zipf.close()
+
+    return ext_filename
 
 
 def set_selenium_local_session(proxy_address,
@@ -92,6 +108,9 @@ def set_selenium_local_session(proxy_address,
 
         browser = webdriver.Firefox(firefox_profile=firefox_profile,
                                     options=firefox_options)
+
+        # add extenions to hide selenium
+        browser.install_addon(create_firefox_extension(), temporary = True)
 
         # converts to custom browser
         # browser = convert_selenium_browser(browser)
@@ -184,7 +203,7 @@ def set_selenium_local_session(proxy_address,
                 float(matches.groups()[0]), Settings.chromedriver_min_version)
             return browser, err_msg
 
-    # browser.implicitly_wait(page_delay)
+    browser.implicitly_wait(page_delay)
 
     message = "Session started!"
     highlight_print('browser', message, "initialization", "info", logger)
