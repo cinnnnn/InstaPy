@@ -1,6 +1,8 @@
 import time
 import math
+import uuid
 from random import randint
+from random import sample
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import WebDriverException
 from .util import click_element
@@ -11,7 +13,7 @@ from .xpath import read_xpath
 import requests
 
 
-def get_story_data(browser, elem, action_type, logger, simulate = False):
+def get_story_data(browser, elem, action_type, logger, simulate = False, story_comments = None):
     """
     get the JSON data from the graphql URL
     output the amount of segments we can watch
@@ -19,6 +21,8 @@ def get_story_data(browser, elem, action_type, logger, simulate = False):
 
     # if things change in the future, modify here:
     query_hash = "cda12de4f7fd3719c0569ce03589f4c4"
+    seen_url = "https://www.instagram.com/stories/reel/seen"
+    create_thread_url = "https://www.instagram.com/direct_v2/web/create_group_thread/"
     elem_id = ""
 
 
@@ -72,6 +76,7 @@ def get_story_data(browser, elem, action_type, logger, simulate = False):
     update_activity()
 
     reels_cnt = 0
+    reels_comments_cnt = 0
     if response['status'] == 'ok':
         # we got a correct response from the server
         # check how many reels we got
@@ -97,17 +102,51 @@ def get_story_data(browser, elem, action_type, logger, simulate = False):
                             'X-Requested-With': 'XMLHttpRequest',
                             'Content-Type': 'application/x-www-form-urlencoded'
                         }
-                        response = session.post("https://www.instagram.com/stories/reel/seen",
-                                     data = { 'reelMediaId': item['id'],
-                                             'reelMediaOwnerId': item['owner']['id'],
-                                             'reelId': reel_id,
-                                             'reelMediaTakenAt': item['taken_at_timestamp'],
-                                             'viewSeenAt': math.floor(time.time())
-                                             },
-                                     headers = headers)
+                        response = session.post(seen_url,
+                                                data={'reelMediaId': item['id'],
+                                                      'reelMediaOwnerId': item['owner']['id'],
+                                                      'reelId': reel_id,
+                                                      'reelMediaTakenAt': item['taken_at_timestamp'],
+                                                      'viewSeenAt': math.floor(time.time())
+                                                      },
+                                                headers=headers)
                         logger.info('  --> simulated watch reel # {}'.format(index))
                         index += 1
-                        time.sleep(randint(3,6))
+                        time.sleep(randint(10,15))
+
+                        if (story_comments is not None) \
+                                and (story_do_comment is True) \
+                                and (index == 2 or story_comment_all):
+                            # we comment on the first reel of the first story or we comment on all
+                            # first create a thread (seems there is no data in the post
+                            # would it be the referer that gives the information?
+                            data = session.post(create_thread_url,
+                                                data={
+                                                    'recipient_users: ["{}"]'.format(item['owner']['id'])
+                                                },
+                                                headers=headers)
+                            response = data.json()
+                            if data.status == "200":
+                                #send the comment on the thread
+                                response_comment=session.post(comment_url,
+                                                      data={
+                                                          'action': 'send_item',
+                                                          'client_context': uuid.uuid1(),
+                                                          'reel_id': reel_id,
+                                                          'media_id': item['id'],
+                                                          'thread_id': response['thread_id'],
+                                                          'text': random.sample(story_comments,1)
+                                                      },
+                                                      headers=headers)
+                                print(str(response_comment))
+                                print(response_comment.json())
+                                if response_comment.status == "200":
+                                    logger.info('  --> comment sent to {}'.format(item['owner']['username']))
+                                    reels_comments_cnt +=1
+                                else:
+                                    logger.info('  --> failed to send comment')
+                            else:
+                                logger.info('  --> failed to create thread')
 
                     reels_cnt += 1
 
@@ -117,7 +156,7 @@ def get_story_data(browser, elem, action_type, logger, simulate = False):
 
 
 
-def watch_story(browser, elem, logger, action_type, simulate = False):
+def watch_story(browser, elem, logger, action_type, simulate = False, story_comments = None):
     """
         Load Stories, and watch it until there is no more stores
         to watch for the related element
@@ -133,7 +172,7 @@ def watch_story(browser, elem, logger, action_type, simulate = False):
     # wait for the page to load
     time.sleep(randint(2, 6))
     # order is important here otherwise we are not on the page of the story we want to watch
-    story_data = get_story_data(browser, elem, action_type, logger, simulate)
+    story_data = get_story_data(browser, elem, action_type, logger, simulate, story_comments)
 
     if story_data['status'] == 'not ok':
         raise NoSuchElementException
