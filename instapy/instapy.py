@@ -211,6 +211,7 @@ class InstaPy:
         self.do_story = False
         self.story_percentage = 0
         self.story_simulate = False
+        self.story_do_comment = False
         self.smart_hashtags = []
         self.smart_location_hashtags = []
 
@@ -529,13 +530,14 @@ class InstaPy:
 
         return self
 
-    def set_do_story(self, enabled = False, percentage = 0, simulate = False):
+    def set_do_story(self, enabled = False, percentage = 0, simulate = False, do_comment = False):
         """
             configure stories
             enabled: to add story to interact
             percentage: how much to watch
             simulate: if True, we will simulate watching (faster),
                       but nothing will be seen on the browser window
+            do_comment: if True will start commenting on stories
         """
         if self.aborting:
             return self
@@ -543,6 +545,8 @@ class InstaPy:
         self.do_story = enabled
         self.story_percentage = min(percentage,100)
         self.story_simulate = simulate
+        self.story_do_comment = do_comment
+        self.story_comment_all = comment_all
 
         return self
 
@@ -5501,7 +5505,14 @@ class InstaPy:
                 self.logger.info('Loading stories with Tag --> {}'.format(tag.encode('utf-8')))
 
                 try:
-                    reels = watch_story(self.browser, tag, self.logger, "tag", self.story_simulate)
+                    reels = watch_story(self.browser,
+                                        tag,
+                                        self.logger,
+                                        "tag",
+                                        self.story_simulate,
+                                        self.story_do_comment,
+                                        self.comment_percentage,
+                                        self.comments)
                 except NoSuchElementException:
                     self.logger.info('No stories skipping this tag')
                     continue
@@ -5529,7 +5540,14 @@ class InstaPy:
                 self.logger.info('Loading stories with User --> {}'.format(user.encode('utf-8')))
 
                 try:
-                    reels = watch_story(self.browser, user, self.logger, "user", self.story_simulate)
+                    reels = watch_story(self.browser,
+                                        user,
+                                        self.logger,
+                                        "user",
+                                        self.story_simulate,
+                                        self.story_do_comment,
+                                        self.comment_percentage,
+                                        self.comments)
                 except NoSuchElementException:
                     self.logger.info('No stories skipping this user')
                     continue

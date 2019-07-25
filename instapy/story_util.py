@@ -14,7 +14,7 @@ from .xpath import read_xpath
 import requests
 
 
-def get_story_data(browser, elem, action_type, logger, simulate = False, story_comments = None):
+def get_story_data(browser, elem, action_type, logger, simulate = False, do_comment = False, comment_percentage = 0, comments = None):
     """
     get the JSON data from the graphql URL
     output the amount of segments we can watch
@@ -115,18 +115,15 @@ def get_story_data(browser, elem, action_type, logger, simulate = False, story_c
                         index += 1
                         time.sleep(randint(10,15))
 
-                        if (story_comments is not None) \
-                                and (story_do_comment is True) \
-                                and (index == 2 or story_comment_all):
-                            # we comment on the first reel of the first story or we comment on all
-                            # first create a thread (seems there is no data in the post
-                            # would it be the referer that gives the information?
+                        if (comments is not None) \
+                                and (random.randint(0,100) <= comment_percentage and do_comment):
                             data = session.post(create_thread_url,
                                                 data={
                                                     'recipient_users: ["{}"]'.format(item['owner']['id'])
                                                 },
                                                 headers=headers)
                             response = data.json()
+                            print(data.json())
                             if data.status == "200":
                                 #send the comment on the thread
                                 response_comment=session.post(comment_url,
@@ -136,7 +133,7 @@ def get_story_data(browser, elem, action_type, logger, simulate = False, story_c
                                                           'reel_id': reel_id,
                                                           'media_id': item['id'],
                                                           'thread_id': response['thread_id'],
-                                                          'text': random.sample(story_comments,1)
+                                                          'text': random.sample(comments,1)
                                                       },
                                                       headers=headers)
                                 print(str(response_comment))
@@ -157,7 +154,7 @@ def get_story_data(browser, elem, action_type, logger, simulate = False, story_c
 
 
 
-def watch_story(browser, elem, logger, action_type, simulate = False, story_comments = None):
+def watch_story(browser, elem, logger, action_type, simulate = False, do_comments = False, comment_percentage = 0, comments = None):
     """
         Load Stories, and watch it until there is no more stores
         to watch for the related element
@@ -176,7 +173,7 @@ def watch_story(browser, elem, logger, action_type, simulate = False, story_comm
     # wait for the page to load
     time.sleep(randint(2, 6))
     # order is important here otherwise we are not on the page of the story we want to watch
-    story_data = get_story_data(browser, elem, action_type, logger, simulate, story_comments)
+    story_data = get_story_data(browser, elem, action_type, logger, simulate, do_comments, comment_percentage, comments)
 
     if story_data['status'] == 'not ok':
         raise NoSuchElementException
