@@ -8,6 +8,7 @@ from selenium.common.exceptions import WebDriverException
 from .util import click_element
 from .util import web_address_navigator
 from .util import update_activity
+from .util import get_action_delay
 from .xpath import read_xpath
 
 import requests
@@ -162,6 +163,9 @@ def watch_story(browser, elem, logger, action_type, simulate = False, story_comm
         to watch for the related element
     """
 
+    # make sure we work with a lower case elem
+    elem = elem.lower()
+
     if action_type == "tag":
         story_link = "https://www.instagram.com/explore/tags/{}".format(elem)
 
@@ -204,6 +208,10 @@ def watch_story(browser, elem, logger, action_type, simulate = False, story_comm
                 break
 
     logger.info('watched {} reels from {}: {}'.format(story_data['reels_cnt'], action_type, elem.encode('utf-8')))
+
+    # get the post-story delay time to sleep
+    naply = get_action_delay("story")
+    time.sleep(naply)
 
     return story_data['reels_cnt']
 
