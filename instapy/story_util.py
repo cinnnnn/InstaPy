@@ -123,9 +123,11 @@ def get_story_data(browser, elem, action_type, logger, simulate = False, do_comm
                                                 },
                                                 headers=headers)
                             response = data.json()
-                            print(data.json())
+                            print("thread="+data.json())
                             if data.status == "200":
-                                #send the comment on the thread
+                                # send the comment on the thread
+                                # in the case of tags, we actually cannot comment from the app, but this still work
+                                # it is as if we went to see the user and commented on his story
                                 response_comment=session.post(comment_url,
                                                       data={
                                                           'action': 'send_item',
@@ -136,8 +138,8 @@ def get_story_data(browser, elem, action_type, logger, simulate = False, do_comm
                                                           'text': random.sample(comments,1)
                                                       },
                                                       headers=headers)
-                                print(str(response_comment))
-                                print(response_comment.json())
+                                print("comment="+str(response_comment))
+                                print("comment json="+response_comment.json())
                                 if response_comment.status == "200":
                                     logger.info('  --> comment sent to {}'.format(item['owner']['username']))
                                     reels_comments_cnt +=1
