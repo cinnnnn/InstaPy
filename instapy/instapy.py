@@ -154,6 +154,7 @@ class InstaPy:
         if self.split_db:
             Settings.database_location = localize_path("db", "instapy_{}.db".format(self.username))
 
+        self.page_delay = page_delay
         self.do_comment = False
         self.comment_percentage = 0
         self.comments = ['Cool!', 'Nice!', 'Looks good!']
