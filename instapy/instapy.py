@@ -363,7 +363,7 @@ class InstaPy:
             return self
 
         if selenium_driver:
-            self.browser = selenium_driver 
+            self.browser = selenium_driver
         else:
             self.browser = webdriver.Remote(
                 command_executor = selenium_url,
