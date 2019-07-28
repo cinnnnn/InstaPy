@@ -10,10 +10,13 @@ class FSMSession(Object):
     """
     Define all the states and transitions, callbacks of an instagram session
 
+    V1: target is to be able to reproduce a set of InstaPy primitives on individual user/post
+    Integration will be very basic, we are just replacing the need to write a complicated script
+
     Inputs: a set of configuration (what actions, how much, scheduled)
     Output: the state machine will perform the amount of actions configured and scheduled
 
-    You will have no exact control on when a specific action is going to be done or when as
+    You will have no exact control on when a specific action is going to be done or when
     everything is as random as possible
 
     """
@@ -26,8 +29,7 @@ class FSMSession(Object):
         'liked',
         'commented',
         'interacted',
-        'watched',
-        'paused'
+        'watched'
     ]
 
     # all possible transitions
@@ -39,12 +41,26 @@ class FSMSession(Object):
         {'trigger': 'go_comment', 'source': 'idle', 'dest': 'commented'},
         {'trigger': 'go_interact', 'source': ['followed', 'liked'], 'dest': 'interacted'},
         {'trigger': 'go_watch', 'source': 'idle', 'dest': 'watched'},
-        {'trigger': 'go_pause', 'source': 'idle', 'dest': 'paused'},
         {'trigger': 'do_gather_data', 'source': 'idle', 'dest': 'idle'},
         {'trigger': 'do_work', 'source': 'idle', 'dest': '*'}
     ]
 
-    #currently safe numbers
+    # Instapy functions to call for doing the triggered action
+    # This is very problematic as there is no uniform prototyping and no clear boundaries when
+    # and action start or finish. So different functions here covers different things
+    # ideally we need a unified prototype (**kvargs) and unitary actions
+    actions = [
+        {'follow': 'follow_by_list'},
+        {'unfollow': 'unfollow_user'},
+        {'like': 'like_image'},
+        {'comment': ''},
+        {'interact': ''},
+        {'watch': ''}
+    ]
+
+    machine = None
+
+    #currently safe default numbers
     quota = {
         "peak_likes": (40, 400),
         "peak_comments":  (20, 200),
@@ -53,17 +69,21 @@ class FSMSession(Object):
         "peak_server_calls": (300, 3500)
     }
 
-    machine = None
-
-    #stack of posts to do actions on
+    # the stacks permit to pass the actions between states if we need to
+    # and it works by a simple .append(), .pop()
+    # stack of posts to do actions on
     posts_stack = {}
     posts_stack_likes = {}
     posts_stack_comment = {}
-    #stack of users to do action on
+    # stack of users to do action on
     users_stack = {}
     users_stack_follow = {}
     users_stack_interact = {}
     users_stack_unfollow = {}
+    #stack of comments to do action
+    comments_stack = {}
+    comments_stack_like = {}
+    comments_stack_reply = {}
 
 
     def __init__(self, quota: dict = None, actions: dict = None):
@@ -81,15 +101,9 @@ class FSMSession(Object):
 
     def on_enter_idle(self):
         """
-        check if we still have some quota
-        otherwise trigger pause
+
         :return:
         """
-        if random.randint(0,100) <50:
-            print("[FSM] - state {}=".format(self.machine.state))
-            self.machine.trigger('go_pause')
-        else:
-            self.machine.trigger('do_work')
 
     def on_exit_idle(self):
         """
@@ -117,7 +131,7 @@ class FSMSession(Object):
             self.machine.trigger('do_work')
         else:
             if self.nomore_data is False:
-                self.machnie.trigger('do_get_data')
+                self.machine.trigger('do_gather_data')
 
         #we arrive at a permanent state of the FSM, we stay idle forever
 
@@ -126,6 +140,9 @@ class FSMSession(Object):
         execute the actions needed to follow a user
         :return:
         """
+        # quota is plugged in directly into each action
+        # so we should wait if we are over automatically
+        # no need to plug that in
         print("doing the follow action")
 
     def go_unfollow(self):
@@ -133,6 +150,9 @@ class FSMSession(Object):
         execute the actions needed to unfollow a user
         :return:
         """
+        # quota is plugged in directly into each action
+        # so we should wait if we are over automatically
+        # no need to plug that in
         print("doing the unfollow action")
 
     def on_enter_followed(self):
@@ -140,17 +160,38 @@ class FSMSession(Object):
         we had a successfull follow
         :return:
         """
-        self.followed +=1
-        #update the db
-        #do all what is needed to do
-        print("action_delay")
+        # update the fsm info
+        # but not really needed as each function will update everything it need
+        # into live session
+        self.followed_action +=1
 
-        #clean up
-        user=self.users_stack_follow.pop()
-        if Setting.do_interact:
-            self.users_stack_interact.append(user)
-            self.trigger("go_interact")
-        #more actions possible here if needed
+        # clean up
+        self.users_stack_follow.pop()
+
+
+    def on_enter_unfollowed(self):
+        """
+        we had an successfull unfollow
+        :return:
+        """
+        self.unfollowed_action +=1
+
+        self.users_stack_unfollow.pop()
+
+    def do_gather_data(self):
+        """
+        This function should execute gathering data from the usual functions of a script
+        for example if we want to do follow_likers, then we should call the InstaPy function that gather the username of the likers
+        and so on...
+
+        This might be difficult as the InstaPy code might not be organized to support those functions separately
+        Shall we mock/rewrite those functions?? How do we solve this
+        Have an fsm_ entry point in class InstaPy
+        or we should just leave this complexity outside for the moment and just expect that the state machine is initialized with the correct
+        users, post to work on
+        :return:
+        """
+        print("do nothing for the moment???")
 
 
 
