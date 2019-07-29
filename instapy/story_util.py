@@ -24,6 +24,8 @@ def get_story_data(browser, elem, action_type, logger, simulate = False, do_comm
     query_hash = "cda12de4f7fd3719c0569ce03589f4c4"
     seen_url = "https://www.instagram.com/stories/reel/seen"
     create_thread_url = "https://www.instagram.com/direct_v2/web/create_group_thread/"
+    comment_url = "https://www.instagram.com/direct_v2/web/threads/broadcast/reel_share/"
+    reaction_url = ""
     elem_id = ""
 
 
