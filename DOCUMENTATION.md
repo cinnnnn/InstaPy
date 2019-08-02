@@ -1230,7 +1230,9 @@ session.set_skip_users(skip_bio_keyword = ['free shipping',' Order', 'visa', 'pa
 
 This will skip all users that have one these keywords on their bio.
 
-### Activate story watching while interacting
+### Instapy Stories
+
+#### Watching Stories with interact
 
 Will add story watching while interacting with users
 
@@ -1244,7 +1246,7 @@ session.set_do_story(enabled = True, percentage = 70, simulate = True)
 
   Please note: `simulate = False` is the safest settings as it fully disables all additional, simulated interactions
 
-### Watch stories by Tags
+#### Watch stories by Tags
 
 Will watch up to 20 stories published with specified tags.
 
@@ -1252,7 +1254,7 @@ Will watch up to 20 stories published with specified tags.
 session.story_by_tags(['tag1', 'tag2'])
 ```
 
-### Watch stories from users
+#### Watch stories from users
 
 Take a list of users and watch their stories.
 
