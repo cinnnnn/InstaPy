@@ -94,6 +94,9 @@ from .xpath import read_xpath
 from selenium.common.exceptions import NoSuchElementException
 from .exceptions import InstaPyError
 
+# import API for Instagram
+from telegram.ext import Updater
+from telegram.ext import CommandHandler
 
 class InstaPy:
     """Class to be instantiated to use the script"""
@@ -4905,13 +4908,42 @@ class InstaPy:
                         self.reels_watched,
                         owner_relationship_info,
                         run_time_msg))
+            return ( "Sessional Live Report:\n"
+                "\t|> LIKED {} images  |  ALREADY LIKED: {}\n"
+                "\t|> COMMENTED on {} images\n"
+                "\t|> FOLLOWED {} users  |  ALREADY FOLLOWED: {}\n"
+                "\t|> UNFOLLOWED {} users\n"
+                "\t|> LIKED {} comments\n"
+                "\t|> REPLIED to {} comments\n"
+                "\t|> INAPPROPRIATE images: {}\n"
+                "\t|> NOT VALID users: {}\n"
+                "\t|> WATCHED {} story(ies)  |  WATCHED {} reel(s)\n"
+                "\n{}\n{}"
+                .format(self.liked_img,
+                        self.already_liked,
+                        self.commented,
+                        self.followed,
+                        self.already_followed,
+                        self.unfollowed,
+                        self.liked_comments,
+                        self.replied_to_comments,
+                        self.inap_img,
+                        self.not_valid_users,
+                        self.stories_watched,
+                        self.reels_watched,
+                        owner_relationship_info,
+                        run_time_msg) )
         else:
             self.logger.info("Sessional Live Report:\n"
                              "\t|> No any statistics to show\n"
                              "\n{}\n{}"
                              .format(owner_relationship_info,
                                      run_time_msg))
-
+            return ("Sessional Live Report:\n"
+                             "\t|> No any statistics to show\n"
+                             "\n{}\n{}"
+                             .format(owner_relationship_info,
+                                     run_time_msg))
 
 
     def set_do_reply_to_comments(self,
@@ -5651,3 +5683,59 @@ class InstaPy:
                 if reels > 0:
                     self.stories_watched += 1
                     self.reels_watched += reels
+
+    def telegram_bot(self, token: str = None):
+        """
+        Funtion to initialize a telegram bot that you can talk to to control your InstaPy Bot
+        :param token: your token for your bot (to get one go to @FatherBot)
+        :return:
+        """
+
+        updater = Updater(token=token, use_context=True)
+        dispatcher = updater.dispatcher
+
+        start_handler = CommandHandler('start', self.telegram_start)
+        dispatcher.add_handler(start_handler)
+
+        report_handler = CommandHandler('report', self.telegram_report)
+        dispatcher.add_handler(report_handler)
+
+        report_handler = CommandHandler('stop', self.telegram_stop)
+        dispatcher.add_handler(report_handler)
+
+        updater.start_polling()
+
+    def telegram_start(update, context):
+        """
+
+        :param update:
+        :param context:
+        :return:
+        """
+
+        context.bot.send_message(chat_id=update.message.chat_id, text="I am your Instapy Bot \n"+
+                                                                      " Recognized actions are:\n"+
+                                                                      "   - start (this command) \n"+
+                                                                      "   - report (a live report from the bot\n"+
+                                                                      "   - stop (force stop the bot)\n"
+                                 )
+
+    def telegram_report(update,context):
+        """
+
+        :param update:
+        :param context:
+        :return:
+        """
+
+        context.bot.send_message(chat_id = update.message.chat_id, text=live_report())
+
+
+    def telegram_stop(update,context):
+        """
+
+        :param update:
+        :param context:
+        :return:
+        """
+        print('nothing')
