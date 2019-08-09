@@ -125,9 +125,6 @@ class InstaPy:
         proxy_port = cli_args.proxy_port or proxy_port
         disable_image_load = cli_args.disable_image_load or disable_image_load
 
-        bypass_suspicious_attempt = (
-            cli_args.bypass_suspicious_attempt or bypass_suspicious_attempt
-        )
         bypass_with_mobile = cli_args.bypass_with_mobile or bypass_with_mobile
         split_db = cli_args.split_db or split_db
 
