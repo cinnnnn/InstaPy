@@ -20,3 +20,4 @@ MeaningCloud-python>=1.1.1
 PyYAML>=3.13
 fake-useragent
 webdriverdownloader
+python-telegram-bot==12.0.0b1
