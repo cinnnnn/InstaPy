@@ -11,34 +11,44 @@ from telegram.ext import Updater
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler
 from telegram.ext import Filters
-from telegram.error import (TelegramError, Unauthorized, BadRequest,
-                            TimedOut, ChatMigrated, NetworkError)
+from telegram.error import (
+    TelegramError,
+    Unauthorized,
+    BadRequest,
+    TimedOut,
+    ChatMigrated,
+    NetworkError,
+)
 import logging
 import requests
+
 
 class InstaPyTelegramBot:
     """
     Class to handle the instapy telegram bot
     """
 
-    #internal variables declaration
-    _token = ''
-    _telegram_username = ''
+    # internal variables declaration
+    _token = ""
+    _telegram_username = ""
     _instapy_session = None
     _logger = None
     _updater = None
 
-    def __init__(self, token = '', telegram_username = '', instapy_session = None):
+    def __init__(self, token="", telegram_username="", instapy_session=None):
 
         self._logger = logging.getLogger()
-
 
         self._instapy_session = instapy_session
         self._telegram_username = telegram_username
         self._token = token
 
-        #launch the telegram bot already if everything is ready at init
-        if (self._token != '') and (self._telegram_username != '') and (self._instapy_session is not None):
+        # launch the telegram bot already if everything is ready at init
+        if (
+            (self._token != "")
+            and (self._telegram_username != "")
+            and (self._instapy_session is not None)
+        ):
             self.telegram_bot()
 
     @property
@@ -82,7 +92,7 @@ class InstaPyTelegramBot:
         return self._token
 
     @token.setter
-    def token(self,token):
+    def token(self, token):
         self._token = token
 
     def telegram_bot(self):
@@ -91,37 +101,39 @@ class InstaPyTelegramBot:
         :return:
         """
 
-        if self._token == '':
-            self._logger.warning(
-                'You need to set token for InstaPyTelegramBot to work')
+        if self._token == "":
+            self._logger.warning("You need to set token for InstaPyTelegramBot to work")
             return
-        if self._telegram_username == '':
+        if self._telegram_username == "":
             self._logger.warning(
-                'You need to set telegram_username for InstaPyTelegramBot to work')
+                "You need to set telegram_username for InstaPyTelegramBot to work"
+            )
             return
         if self._instapy_session is None:
             self._logger.warning(
-                'You need to set instapy_session for InstaPyTelegramBot to work')
+                "You need to set instapy_session for InstaPyTelegramBot to work"
+            )
             return
 
         self._clean_web_hooks()
-        updater = Updater(token=self._token, use_context=True, user_sig_handler=self.end)
+        updater = Updater(
+            token=self._token, use_context=True, user_sig_handler=self.end
+        )
         self._updater = updater
 
         dispatcher = updater.dispatcher
         # logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         #                     level=logging.INFO)
         # dispatcher.add_error_handler(self._error_callback)
-        start_handler = CommandHandler('start', self._start)
+        start_handler = CommandHandler("start", self._start)
         dispatcher.add_handler(start_handler)
-        report_handler = CommandHandler('report', self._report)
+        report_handler = CommandHandler("report", self._report)
         dispatcher.add_handler(report_handler)
-        report_handler = CommandHandler('stop', self._stop)
+        report_handler = CommandHandler("stop", self._stop)
         dispatcher.add_handler(report_handler)
         unknown_handler = MessageHandler(Filters.command, self._unknown)
         dispatcher.add_handler(unknown_handler)
         updater.start_polling()
-
 
     def _start(self, update, context):
         """
@@ -132,13 +144,14 @@ class InstaPyTelegramBot:
         """
 
         if self._check_authorized(update, context):
-            context.bot.send_message(chat_id=update.message.chat_id, text="I am your Instapy Bot \n" +
-                                                                      " Recognized actions are:\n" +
-                                                                      "   - /start (this command) \n" +
-                                                                      "   - /report (a live report from the bot\n" +
-                                                                      "   - /stop (force stop the bot)\n")
-
-
+            context.bot.send_message(
+                chat_id=update.message.chat_id,
+                text="I am your Instapy Bot \n"
+                + " Recognized actions are:\n"
+                + "   - /start (this command) \n"
+                + "   - /report (a live report from the bot\n"
+                + "   - /stop (force stop the bot)\n",
+            )
 
     def _report(self, update, context):
         """
@@ -147,9 +160,10 @@ class InstaPyTelegramBot:
         :param context:
         :return:
         """
-        if self._check_authorized(update,context):
-            context.bot.send_message(chat_id=update.message.chat_id, text=self._live_report())
-
+        if self._check_authorized(update, context):
+            context.bot.send_message(
+                chat_id=update.message.chat_id, text=self._live_report()
+            )
 
     def _stop(self, update, context):
         """
@@ -159,7 +173,7 @@ class InstaPyTelegramBot:
         :return:
         """
         if self._check_authorized(update, context):
-            print('nothing')
+            print("nothing")
 
     @staticmethod
     def _unknown(update, context):
@@ -168,8 +182,10 @@ class InstaPyTelegramBot:
         :return:
         """
         if self._check_authorized(update, context):
-            context.bot.send_message(chat_id=update.message.chat_id, text="Sorry I don't understand that command")
-
+            context.bot.send_message(
+                chat_id=update.message.chat_id,
+                text="Sorry I don't understand that command",
+            )
 
     def _check_authorized(self, update, context):
         """
@@ -179,13 +195,16 @@ class InstaPyTelegramBot:
         :return:
         """
         if update.message.from_user.username != self._telegram_username:
-            self._logger.warning("unauthorized access from {}".format(update.message.from_user))
-            context.bot.send_message(chat_id=update.message.chat_id,
-                                     text="You are not authorized to use this service \n")
+            self._logger.warning(
+                "unauthorized access from {}".format(update.message.from_user)
+            )
+            context.bot.send_message(
+                chat_id=update.message.chat_id,
+                text="You are not authorized to use this service \n",
+            )
             return False
         else:
             return True
-
 
     def _clean_web_hooks(self):
         """
@@ -193,16 +212,18 @@ class InstaPyTelegramBot:
         will respond 409
         :return:
         """
-        r = requests.get('https://api.telegram.org/bot{}/deleteWebhook'.format(self._token))
+        r = requests.get(
+            "https://api.telegram.org/bot{}/deleteWebhook".format(self._token)
+        )
 
-        if r.json()['ok'] is not True:
+        if r.json()["ok"] is not True:
             self._logger.warning("unable to remove webhook! Wrong token?")
 
     def _error_callback(bot, update, error):
         try:
             raise error
         except Unauthorized:
-            self._logger.warning("TELEGRAM ERROR {} update={}".format(error,update))
+            self._logger.warning("TELEGRAM ERROR {} update={}".format(error, update))
         except BadRequest:
             # handle malformed requests - read more below!
             self._logger.warning("TELEGRAM ERROR {} update={}".format(error, update))
@@ -225,51 +246,60 @@ class InstaPyTelegramBot:
         :return:
         """
 
-        stats = [self._instapy_session.liked_img, self._instapy_session.already_liked,
-                 self._instapy_session.commented,
-                 self._instapy_session.followed, self._instapy_session.already_followed,
-                 self._instapy_session.unfollowed,
-                 self._instapy_session.stories_watched, self._instapy_session.reels_watched,
-                 self._instapy_session.inap_img,
-                 self._instapy_session.not_valid_users]
+        stats = [
+            self._instapy_session.liked_img,
+            self._instapy_session.already_liked,
+            self._instapy_session.commented,
+            self._instapy_session.followed,
+            self._instapy_session.already_followed,
+            self._instapy_session.unfollowed,
+            self._instapy_session.stories_watched,
+            self._instapy_session.reels_watched,
+            self._instapy_session.inap_img,
+            self._instapy_session.not_valid_users,
+        ]
 
         sessional_run_time = self._instapy_session.run_time()
-        run_time_info = ("{} seconds".format(sessional_run_time) if
-                         sessional_run_time < 60 else
-                         "{} minutes".format(truncate_float(
-                             sessional_run_time / 60, 2)) if
-                         sessional_run_time < 3600 else
-                         "{} hours".format(truncate_float(
-                             sessional_run_time / 60 / 60, 2)))
+        run_time_info = (
+            "{} seconds".format(sessional_run_time)
+            if sessional_run_time < 60
+            else "{} minutes".format(truncate_float(sessional_run_time / 60, 2))
+            if sessional_run_time < 3600
+            else "{} hours".format(truncate_float(sessional_run_time / 60 / 60, 2))
+        )
         run_time_msg = "[Session lasted {}]".format(run_time_info)
         if any(stat for stat in stats):
             self._logger.warning("here")
-            self._logger.warning("Sessional Live Report:\n"
-                  "|> LIKED {} images\n"
-                  "|> ALREADY LIKED: {}\n"
-                  "|> COMMENTED on {} images\n"
-                  "|> FOLLOWED {} users\n"
-                  "|> ALREADY FOLLOWED: {}\n"
-                  "|> UNFOLLOWED {} users\n"
-                  "|> LIKED {} comments\n"
-                  "|> REPLIED to {} comments\n"
-                  "|> INAPPROPRIATE images: {}\n"
-                  "|> NOT VALID users: {}\n"
-                  "|> WATCHED {} story(ies)\n"
-                  "|> WATCHED {} reel(s)\n"
-                  "\n{}".format(self._instapy_session.liked_img,
-                                self._instapy_session.already_liked,
-                                self._instapy_session.commented,
-                                self._instapy_session.followed,
-                                self._instapy_session.already_followed,
-                                self._instapy_session.unfollowed,
-                                self._instapy_session.liked_comments,
-                                self._instapy_session.replied_to_comments,
-                                self._instapy_session.inap_img,
-                                self._instapy_session.not_valid_users,
-                                self._instapy_session.stories_watched,
-                                self._instapy_session.reels_watched,
-                                run_time_msg))
+            self._logger.warning(
+                "Sessional Live Report:\n"
+                "|> LIKED {} images\n"
+                "|> ALREADY LIKED: {}\n"
+                "|> COMMENTED on {} images\n"
+                "|> FOLLOWED {} users\n"
+                "|> ALREADY FOLLOWED: {}\n"
+                "|> UNFOLLOWED {} users\n"
+                "|> LIKED {} comments\n"
+                "|> REPLIED to {} comments\n"
+                "|> INAPPROPRIATE images: {}\n"
+                "|> NOT VALID users: {}\n"
+                "|> WATCHED {} story(ies)\n"
+                "|> WATCHED {} reel(s)\n"
+                "\n{}".format(
+                    self._instapy_session.liked_img,
+                    self._instapy_session.already_liked,
+                    self._instapy_session.commented,
+                    self._instapy_session.followed,
+                    self._instapy_session.already_followed,
+                    self._instapy_session.unfollowed,
+                    self._instapy_session.liked_comments,
+                    self._instapy_session.replied_to_comments,
+                    self._instapy_session.inap_img,
+                    self._instapy_session.not_valid_users,
+                    self._instapy_session.stories_watched,
+                    self._instapy_session.reels_watched,
+                    run_time_msg,
+                )
+            )
             return (
                 "Sessional Live Report:\n"
                 "|> LIKED {} images\n"
@@ -284,24 +314,28 @@ class InstaPyTelegramBot:
                 "|> NOT VALID users: {}\n"
                 "|> WATCHED {} story(ies)\n"
                 "|> WATCHED {} reel(s)\n"
-                "\n{}".format(self._instapy_session.liked_img,
-                              self._instapy_session.already_liked,
-                              self._instapy_session.commented,
-                              self._instapy_session.followed,
-                              self._instapy_session.already_followed,
-                              self._instapy_session.unfollowed,
-                              self._instapy_session.liked_comments,
-                              self._instapy_session.replied_to_comments,
-                              self._instapy_session.inap_img,
-                              self._instapy_session.not_valid_users,
-                              self._instapy_session.stories_watched,
-                              self._instapy_session.reels_watched,
-                              run_time_msg))
+                "\n{}".format(
+                    self._instapy_session.liked_img,
+                    self._instapy_session.already_liked,
+                    self._instapy_session.commented,
+                    self._instapy_session.followed,
+                    self._instapy_session.already_followed,
+                    self._instapy_session.unfollowed,
+                    self._instapy_session.liked_comments,
+                    self._instapy_session.replied_to_comments,
+                    self._instapy_session.inap_img,
+                    self._instapy_session.not_valid_users,
+                    self._instapy_session.stories_watched,
+                    self._instapy_session.reels_watched,
+                    run_time_msg,
+                )
+            )
         else:
-            return ("Sessional Live Report:\n"
-                             "|> No any statistics to show\n"
-                             "\n{}"
-                             .format(run_time_msg))
+            return (
+                "Sessional Live Report:\n"
+                "|> No any statistics to show\n"
+                "\n{}".format(run_time_msg)
+            )
 
     def end(self):
         """
@@ -309,6 +343,6 @@ class InstaPyTelegramBot:
         :return:
         """
         self._updater.stop()
-        self._token = ''
-        self._telegram_username = ''
+        self._token = ""
+        self._telegram_username = ""
         self._instapy_session = None
