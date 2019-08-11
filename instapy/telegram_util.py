@@ -34,13 +34,26 @@ class InstaPyTelegramBot:
     _instapy_session = None
     _logger = None
     _updater = None
+    _debug = False
+    _proxy = None
+    # should be of type:
+    # _proxy = {
+    #     'proxy_url': 'http://PROXY_HOST:PROXY_PORT/',
+    #     # Optional, if you need authentication:
+    #     'username': 'PROXY_USER',
+    #     'password': 'PROXY_PASS',
+    # }
+    _chat_id = None
+    _context = None
 
-    def __init__(self, token="", telegram_username="", instapy_session=None):
+    def __init__(self, init_token="", init_telegram_username="", init_instapy_session=None, init_debug=True, init_proxy=None):
         self._logger = logging.getLogger()
 
-        self._instapy_session = instapy_session
-        self._telegram_username = telegram_username
-        self._token = token
+        self.token(init_token)
+        self.telegram_username(init_telegram_username)
+        self.instapy_session(init_instapy_session)
+        self.debug(init_debug)
+        self.proxy(init_proxy)
 
         # launch the telegram bot already if everything is ready at init
         if (
@@ -61,13 +74,13 @@ class InstaPyTelegramBot:
         return self._telegram_username
 
     @telegram_username.setter
-    def telegram_username(self, telegram_username):
+    def telegram_username(self, value):
         """
         setting the telegram_username if needed
         :param value:
         :return:
         """
-        self._telegram_username = telegram_username
+        self._telegram_username = value
 
     @property
     def instapy_session(self):
@@ -78,13 +91,13 @@ class InstaPyTelegramBot:
         return self._instapy_session
 
     @instapy_session.setter
-    def instapy_session(self, instapy_session):
+    def instapy_session(self, value):
         """
         sets the session_id if needed
         :param value:
         :return:
         """
-        self._instapy_session = instapy_session
+        self._instapy_session = value
 
     @property
     def token(self):
@@ -95,13 +108,50 @@ class InstaPyTelegramBot:
         return self._token
 
     @token.setter
-    def token(self, token):
+    def token(self, value):
         """
         sets the token if needed
         :param token:
         :return:
         """
-        self._token = token
+        self._token = value
+
+    @property
+    def debug(self):
+        """
+        the debug parameter
+        :return:
+        """
+        return self._debug
+
+    @debug.setter
+    def debug(self,value):
+        """
+        sets the debug if needed
+        :param debug:
+        :return:
+        """
+        self._debug = value
+        if self._debug is True:
+            logger.setLevel(logging.DEBUG)
+
+    @property
+    def proxy(self):
+        """
+        return the proxy
+        :return:
+        """
+        return self._proxy
+
+    @proxy.setter
+    def proxy(self, value):
+        """
+        sets the proxy
+        :param value:
+        :return:
+        """
+        self._proxy = value
+        #should add some tests on _proxy to verify it is setup correctly
 
     def telegram_bot(self):
         """
@@ -123,15 +173,20 @@ class InstaPyTelegramBot:
             return
 
         self._clean_web_hooks()
-        updater = Updater(
-            token=self._token, use_context=True, user_sig_handler=self.end
-        )
+
+        if self._proxy is not None:
+            updater = Updater(
+                token=self._token, use_context=True, user_sig_handler=self.end, request_kwargs=self._proxy
+            )
+        else:
+            updater = Updater(
+                token=self._token, use_context=True, user_sig_handler=self.end
+            )
         self._updater = updater
 
         dispatcher = updater.dispatcher
-        # logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        #                     level=logging.INFO)
-        # dispatcher.add_error_handler(self._error_callback)
+
+        dispatcher.add_error_handler(self._error_callback)
         start_handler = CommandHandler("start", self._start)
         dispatcher.add_handler(start_handler)
         report_handler = CommandHandler("report", self._report)
@@ -149,7 +204,8 @@ class InstaPyTelegramBot:
         :param context:
         :return:
         """
-
+        self._chat_id = update.message.chat_id
+        self._context = context
         if self._check_authorized(update, context):
             context.bot.send_message(
                 chat_id=update.message.chat_id,
@@ -167,6 +223,8 @@ class InstaPyTelegramBot:
         :param context:
         :return:
         """
+        self._chat_id = update.message.chat_id
+        self._context = context
         if self._check_authorized(update, context):
             context.bot.send_message(
                 chat_id=update.message.chat_id, text=self._live_report()
@@ -179,6 +237,8 @@ class InstaPyTelegramBot:
         :param context:
         :return:
         """
+        self._chat_id = update.message.chat_id
+        self._context = context
         if self._check_authorized(update, context):
             print("nothing")
 
@@ -319,7 +379,14 @@ class InstaPyTelegramBot:
         tidy up things
         :return:
         """
+        #send one last message to the user reporting the session
+        if (self._chat_id is not None) and (self._context is not None):
+            context.bot.send_message(
+                chat_id=self._chat_id, text=self._live_report()
+            )
         self._updater.stop()
         self._token = ""
         self._telegram_username = ""
         self._instapy_session = None
+        self._chat_id = None
+        self._context = None
