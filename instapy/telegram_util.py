@@ -6,7 +6,7 @@ you will need to create your token on the telegram app and speak with @fatherbot
 you will need to have a username (go to settings -> profile -> Username
 """
 
-
+from .util import truncate_float
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler
@@ -252,7 +252,6 @@ class InstaPyTelegramBot:
         adapted version of instapy live report function for showing up on a telegram message
         :return:
         """
-
         stats = [
             self._instapy_session.liked_img,
             self._instapy_session.already_liked,
@@ -263,7 +262,7 @@ class InstaPyTelegramBot:
             self._instapy_session.stories_watched,
             self._instapy_session.reels_watched,
             self._instapy_session.inap_img,
-            self._instapy_session.not_valid_users,
+            self._instapy_session.not_valid_users
         ]
 
         sessional_run_time = self._instapy_session.run_time()
@@ -275,6 +274,8 @@ class InstaPyTelegramBot:
             else "{} hours".format(truncate_float(sessional_run_time / 60 / 60, 2))
         )
         run_time_msg = "[Session lasted {}]".format(run_time_info)
+
+
         if any(stat for stat in stats):
             return (
                 "Sessional Live Report:\n"
@@ -303,7 +304,7 @@ class InstaPyTelegramBot:
                     self._instapy_session.not_valid_users,
                     self._instapy_session.stories_watched,
                     self._instapy_session.reels_watched,
-                    run_time_msg,
+                    run_time_msg
                 )
             )
         else:
