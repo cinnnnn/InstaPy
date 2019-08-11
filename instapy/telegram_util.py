@@ -89,10 +89,19 @@ class InstaPyTelegramBot:
 
     @property
     def token(self):
+        """
+        the token given by the @fatherbot
+        :return:
+        """
         return self._token
 
     @token.setter
     def token(self, token):
+        """
+        sets the token if needed
+        :param token:
+        :return:
+        """
         self._token = token
 
     def telegram_bot(self):
@@ -100,7 +109,6 @@ class InstaPyTelegramBot:
         Funtion to initialize a telegram bot that you can talk to to control your InstaPy Bot
         :return:
         """
-
         if self._token == "":
             self._logger.warning("You need to set token for InstaPyTelegramBot to work")
             return
