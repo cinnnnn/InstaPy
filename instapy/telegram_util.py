@@ -2,7 +2,7 @@
 A fully functional TelegramBot to get info on an instapy run
 or to control the instapy bot
 
-you will need to create your token on the telegram app and going @fatherbot
+you will need to create your token on the telegram app and speak with @fatherbot
 you will need to have a username (go to settings -> profile -> Username
 """
 
@@ -36,7 +36,6 @@ class InstaPyTelegramBot:
     _updater = None
 
     def __init__(self, token="", telegram_username="", instapy_session=None):
-
         self._logger = logging.getLogger()
 
         self._instapy_session = instapy_session
@@ -277,37 +276,6 @@ class InstaPyTelegramBot:
         )
         run_time_msg = "[Session lasted {}]".format(run_time_info)
         if any(stat for stat in stats):
-            self._logger.warning("here")
-            self._logger.warning(
-                "Sessional Live Report:\n"
-                "|> LIKED {} images\n"
-                "|> ALREADY LIKED: {}\n"
-                "|> COMMENTED on {} images\n"
-                "|> FOLLOWED {} users\n"
-                "|> ALREADY FOLLOWED: {}\n"
-                "|> UNFOLLOWED {} users\n"
-                "|> LIKED {} comments\n"
-                "|> REPLIED to {} comments\n"
-                "|> INAPPROPRIATE images: {}\n"
-                "|> NOT VALID users: {}\n"
-                "|> WATCHED {} story(ies)\n"
-                "|> WATCHED {} reel(s)\n"
-                "\n{}".format(
-                    self._instapy_session.liked_img,
-                    self._instapy_session.already_liked,
-                    self._instapy_session.commented,
-                    self._instapy_session.followed,
-                    self._instapy_session.already_followed,
-                    self._instapy_session.unfollowed,
-                    self._instapy_session.liked_comments,
-                    self._instapy_session.replied_to_comments,
-                    self._instapy_session.inap_img,
-                    self._instapy_session.not_valid_users,
-                    self._instapy_session.stories_watched,
-                    self._instapy_session.reels_watched,
-                    run_time_msg,
-                )
-            )
             return (
                 "Sessional Live Report:\n"
                 "|> LIKED {} images\n"
