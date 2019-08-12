@@ -2,7 +2,7 @@
 A fully functional TelegramBot to get info on an instapy run
 or to control the instapy bot
 
-you will need to create your token on the telegram app and speak with @fatherbot
+you will need to create your token on the telegram app and speak with @botfather
 you will need to have a username (go to settings -> profile -> Username
 """
 
@@ -21,6 +21,7 @@ from telegram.error import (
 )
 import logging
 import requests
+import os
 
 
 class InstaPyTelegramBot:
@@ -36,6 +37,7 @@ class InstaPyTelegramBot:
         debug=True,
         proxy=None,
     ):
+        # import pdb; pdb.set_trace()
         # private properties
         self.__logger = logging.getLogger()
         self.__chat_id = None
@@ -59,7 +61,7 @@ class InstaPyTelegramBot:
         if self.instapy_session is not None:
             try:
                 telegramfile = open('{}telegram_chat_id.txt'.format(self.instapy_session.logfolder))
-            except IOError:
+            except OSError:
                 self.__chat_id = None
             else:
                 with telegramfile:
@@ -141,6 +143,19 @@ class InstaPyTelegramBot:
         unknown_handler = MessageHandler(Filters.command, self._unknown)
         dispatcher.add_handler(unknown_handler)
         updater.start_polling()
+        if self.__chat_id is not None:
+            #session was restored, send a message saying that instapy session is starting
+            self.__context.bot.send_message(self.__chat_id, text="Telegram session restored, InstaPy starting\n")
+
+    @staticmethod
+    def telegram_delete_session(session):
+        """
+        function to force delete the telegram_chat_id.txt file that is in the logs folder
+        :param session: the instapy session
+        :return:
+        """
+        os.remove('{}telegram_chat_id.txt'.format(session.logfolder))
+
 
     def _start(self, update, context):
         """
@@ -337,7 +352,7 @@ class InstaPyTelegramBot:
 
         # send one last message to the user reporting the session
         if (self.__chat_id is not None) and (self.__context is not None):
-            self.__context.bot.send_message(chat_id=self._chat_id, text=self._live_report())
+            self.__context.bot.send_message(chat_id=self.__chat_id, text=self._live_report())
         self.__updater.stop()
         self.token = ""
         self.telegram_username = ""
