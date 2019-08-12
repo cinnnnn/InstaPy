@@ -151,14 +151,14 @@ class InstaPyTelegramBot:
         """
         self.__chat_id = update.message.chat_id
         if self._check_authorized(update, context):
-            context.bot.send_message(
-                chat_id=update.message.chat_id,
-                text="I am your Instapy Bot \n"
-                + " Recognized actions are:\n"
-                + "   - /start (this command) \n"
-                + "   - /report (a live report from the bot\n"
-                + "   - /stop (force stop the bot)\n",
-            )
+            with open('{}telegram_chat_id.txt'.format(self.instapy_session.logfolder), 'w') \
+                    as telegramfile:
+                telegramfile.write(str(self.__chat_id))
+
+            context.bot.send_message(chat_id= update.message.chat_id, text="Bot initialized sucessfully!\n")
+
+
+
 
     def _report(self, update, context):
         """
@@ -197,6 +197,13 @@ class InstaPyTelegramBot:
             context.bot.send_message(
                 chat_id=update.message.chat_id,
                 text="Sorry I don't understand that command",
+            )
+            context.bot.send_message(
+                chat_id=update.message.chat_id,
+                text= " Recognized actions are:\n"
+                     + "   - /start (initialize bot) \n"
+                     + "   - /report (a live report from the bot)\n"
+                     + "   - /stop (force stop the bot)\n",
             )
 
     def _check_authorized(self, update, context):
@@ -327,10 +334,6 @@ class InstaPyTelegramBot:
         # keep the chat_id session for future reference
         # so we don't need to send a message each time InstaPy restart to the bot
         # and we can keep on getting messages when the sessions finishes
-        if self.__chat_id is not None:
-            with open('{}telegram_chat_id.txt'.format(self.instapy_session.logfolder), 'w') \
-                as telegramfile:
-                telegramfile.write(str(self.__chat_id))
 
         # send one last message to the user reporting the session
         if (self.__chat_id is not None) and (self.__context is not None):
