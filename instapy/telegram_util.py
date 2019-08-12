@@ -55,6 +55,16 @@ class InstaPyTelegramBot:
         #     'username': 'PROXY_USER',
         #     'password': 'PROXY_PASS',
 
+        # see if we have a pre-existing chat_id from another run
+        if self.instapy_session is not None:
+            try:
+                telegramfile = open('{}telegram_chat_id.txt'.format(self.instapy_session.logfolder))
+            except IOError:
+                self.__chat_id = None
+            else:
+                with telegramfile:
+                    self.__chat_id = telegramfile.read()
+
         # launch the telegram bot already if everything is ready at init
         if (
             (self.token != "")
@@ -314,6 +324,14 @@ class InstaPyTelegramBot:
         tidy up things
         :return:
         """
+        # keep the chat_id session for future reference
+        # so we don't need to send a message each time InstaPy restart to the bot
+        # and we can keep on getting messages when the sessions finishes
+        if self.__chat_id is not None:
+            with open('{}telegram_chat_id.txt'.format(self.instapy_session.logfolder), 'w') \
+                as telegramfile:
+                telegramfile.write(str(self.__chat_id))
+
         # send one last message to the user reporting the session
         if (self.__chat_id is not None) and (self.__context is not None):
             self.__context.bot.send_message(chat_id=self._chat_id, text=self._live_report())
