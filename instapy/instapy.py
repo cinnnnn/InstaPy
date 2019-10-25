@@ -2364,7 +2364,7 @@ class InstaPy:
 
                         if self.do_like and liking and self.liking_approved:
                             like_state, msg = like_image(self.browser,
-                                                         user_name,
+                                                         username,
                                                          self.blacklist,
                                                          self.logger,
                                                          self.logfolder,
@@ -2404,13 +2404,13 @@ class InstaPy:
                                     if self.commenting_approved:
                                         # smart commenting
                                         comments = self.fetch_smart_comments(
-                                            is_video,
+                                            False,
                                             temp_comments
                                         )
                                         if comments:
                                             comment_state, msg = comment_image(
                                                 self.browser,
-                                                user_name,
+                                                username,
                                                 comments,
                                                 self.blacklist,
                                                 self.logger,
