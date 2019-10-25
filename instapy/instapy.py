@@ -2328,17 +2328,18 @@ class InstaPy:
                 self.logger.info(link)
 
                 try:
-                    inappropriate, user_name, is_video, reason, scope = (
-                        check_link(self.browser,
-                                   link,
-                                   self.dont_like,
-                                   self.mandatory_words,
-                                   self.mandatory_language,
-                                   self.is_mandatory_character,
-                                   self.mandatory_character,
-                                   self.check_character_set,
-                                   self.ignore_if_contains,
-                                   self.logger))
+                    # inappropriate, user_name, is_video, reason, scope = (
+                    #     check_link(self.browser,
+                    #                link,
+                    #                self.dont_like,
+                    #                self.mandatory_words,
+                    #                self.mandatory_language,
+                    #                self.is_mandatory_character,
+                    #                self.mandatory_character,
+                    #                self.check_character_set,
+                    #                self.ignore_if_contains,
+                    #                self.logger))
+                    inappropriate = False
                     track = "post"
 
                     if not inappropriate:

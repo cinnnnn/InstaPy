@@ -585,7 +585,7 @@ def check_link(browser, post_link, dont_like, mandatory_words,
                 return null;}}
         '''.format(media_edge_string), user_name)
 
-    else:
+    elif 'media' in post_page[0]:
         media = post_page[0]['media']
         is_video = media['is_video']
         user_name = media['owner']['username']
@@ -621,7 +621,7 @@ def check_link(browser, post_link, dont_like, mandatory_words,
             image_text = media[media_edge_string]['edges']
             image_text = image_text[0]['node']['text'] if image_text else None
 
-        else:
+        elif 'media' in post_page[0]:
             image_text = media['comments']['nodes']
             image_text = image_text[0]['text'] if image_text else None
 
