@@ -604,15 +604,10 @@ def check_link(browser, post_link, dont_like, mandatory_words,
                 return null;}
         ''', user_name)
 
-    if owner_comments == '':
-        owner_comments = None
+    owner_comments = None
 
     # Append owner comments to description as it might contain further tags
-    if image_text is None:
-        image_text = owner_comments
-
-    elif owner_comments:
-        image_text = image_text + '\n' + owner_comments
+    image_text = owner_comments
 
     # If the image still has no description gets the first comment
     if image_text is None:
@@ -628,32 +623,27 @@ def check_link(browser, post_link, dont_like, mandatory_words,
     if image_text is None:
         image_text = "No description"
 
-    logger.info('Image from: {}'.format(user_name.encode('utf-8')))
+    # logger.info('Image from: {}'.format(user_name.encode('utf-8')))
     logger.info('Link: {}'.format(post_link.encode('utf-8')))
     logger.info('Description: {}'.format(image_text.encode('utf-8')))
 
     # Check if mandatory character set, before adding the location to the text
     if mandatory_language:
         if not check_character_set(image_text):
-            return True, user_name, is_video, 'Mandatory language not ' \
+            return True, '', False, 'Mandatory language not ' \
                                               'fulfilled', "Not mandatory " \
                                                            "language"
 
-    # Append location to image_text so we can search through both in one go
-    if location_name:
-        logger.info('Location: {}'.format(location_name.encode('utf-8')))
-        image_text = image_text + '\n' + location_name
-
     if mandatory_words:
         if not any((word in image_text for word in mandatory_words)):
-            return True, user_name, is_video, 'Mandatory words not ' \
+            return True, '', False, 'Mandatory words not ' \
                                               'fulfilled', "Not mandatory " \
                                                            "likes"
 
     image_text_lower = [x.lower() for x in image_text]
     ignore_if_contains_lower = [x.lower() for x in ignore_if_contains]
     if any((word in image_text_lower for word in ignore_if_contains_lower)):
-        return False, user_name, is_video, 'None', "Pass"
+        return False, '', False, 'None', "Pass"
 
     dont_like_regex = []
 
@@ -689,9 +679,9 @@ def check_link(browser, post_link, dont_like, mandatory_words,
             inapp_unit = 'Inappropriate! ~ contains "{}"'.format(
                 quashed if iffy == quashed else
                 '" in "'.join([str(iffy), str(quashed)]))
-            return True, user_name, is_video, inapp_unit, "Undesired word"
+            return True, '', False, inapp_unit, "Undesired word"
 
-    return False, user_name, is_video, 'None', "Success"
+    return False, '', False, 'None', "Success"
 
 
 def like_image(browser, username, blacklist, logger, logfolder, total_liked_img):
