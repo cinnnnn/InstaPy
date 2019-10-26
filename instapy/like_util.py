@@ -17,7 +17,6 @@ from .util import explicit_wait
 from .util import extract_text_from_element
 from .quota_supervisor import quota_supervisor
 from .unfollow_util import get_following_status
-from .event import Event
 
 from selenium.common.exceptions import WebDriverException
 from selenium.common.exceptions import NoSuchElementException
